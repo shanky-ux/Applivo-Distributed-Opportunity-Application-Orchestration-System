@@ -1,7 +1,5 @@
 <div align="center">
 
-# D.A.O.I.S.A.O.S
-
 ### Distributed Autonomous Opportunity Intelligence  
 ### and Strategic Application Orchestration System
 
