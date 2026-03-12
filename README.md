@@ -1051,4 +1051,3 @@ career_platform/
 
 **Secrets.** `SECRET_KEY` and `JWT_SECRET_KEY` must be replaced with cryptographically random strings of at least 32 characters before any non-local deployment. Use `openssl rand -hex 32` to generate them.
 
-**Credentials file.** Platform
