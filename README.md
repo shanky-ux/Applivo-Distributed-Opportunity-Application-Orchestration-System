@@ -22,7 +22,7 @@
 
 ## Overview
 
-D.A.O.I.S.A.O.S is a **distributed, AI-powered career automation platform** designed for single-user personal deployment. Once configured, it operates entirely in the background — continuously scraping job boards across multiple platforms, scoring each opportunity against your career profile through a dual-model LLM pipeline, generating ATS-optimised resumes and cover letters, submitting applications via a Playwright browser agent, and delivering real-time notifications through Telegram and email.
+APPLIVO is a **distributed, AI-powered career automation platform** designed for single-user personal deployment. Once configured, it operates entirely in the background — continuously scraping job boards across multiple platforms, scoring each opportunity against your career profile through a dual-model LLM pipeline, generating ATS-optimised resumes and cover letters, submitting applications via a Playwright browser agent, and delivering real-time notifications through Telegram and email.
 
 The platform is built around three core principles:
 
@@ -40,18 +40,18 @@ The platform is built around three core principles:
  ┌─────────────────────────────────────────────────────────────────────────────┐
  │                          PRESENTATION LAYER                                 │
  │                       Next.js · TailwindCSS                                 │
- │  ┌───────────┐  ┌──────────┐  ┌───────────┐  ┌──────────────┐  ┌────────┐  │
- │  │ Job Feed  │  │ Resumes  │  │  Tracker  │  │ Interview    │  │  Chat  │  │
- │  │           │  │          │  │           │  │ Prep         │  │        │  │
- │  └───────────┘  └──────────┘  └───────────┘  └──────────────┘  └────────┘  │
+ │  ┌───────────┐  ┌──────────┐  ┌───────────┐  ┌──────────────┐  ┌────────┐   │
+ │  │ Job Feed  │  │ Resumes  │  │  Tracker  │  │ Interview    │  │  Chat  │   │
+ │  │           │  │          │  │           │  │ Prep         │  │        │   │
+ │  └───────────┘  └──────────┘  └───────────┘  └──────────────┘  └────────┘   │
  └──────────────────────────────────┬──────────────────────────────────────────┘
                                     │  HTTPS / JWT Bearer
  ┌──────────────────────────────────▼──────────────────────────────────────────┐
  │                          APPLICATION LAYER                                  │
  │                   FastAPI · Uvicorn · SQLAlchemy asyncpg                    │
- │  ┌────────┐ ┌───────┐ ┌──────────────┐ ┌──────────┐ ┌─────────┐ ┌───────┐  │
- │  │ /auth  │ │ /jobs │ │ /applications│ │ /resumes │ │ /agent  │ │ /chat │  │
- │  └────────┘ └───────┘ └──────────────┘ └──────────┘ └─────────┘ └───────┘  │
+ │  ┌────────┐ ┌───────┐ ┌──────────────┐ ┌──────────┐ ┌─────────┐ ┌───────┐   │
+ │  │ /auth  │ │ /jobs │ │ /applications│ │ /resumes │ │ /agent  │ │ /chat │   │
+ │  └────────┘ └───────┘ └──────────────┘ └──────────┘ └─────────┘ └───────┘   │
  └──────────────────┬───────────────────────────────┬────────────────────────--┘
        SQLAlchemy   │                               │  Celery .delay()
  ┌─────────────────-▼──────────────┐   ┌────────────▼──────────────────────────┐
@@ -129,9 +129,9 @@ The central automation cycle runs every 6 hours via `run_main_agent_cycle`. Each
                      │  score >= threshold
   ┌──────────────────▼──────────────────────────────────────────────┐
   │  Pass 2 — GPT-4o  (structured JSON output)                      │
-  │  Extracts:  required_skills  preferred_skills  tech_stack        │
-  │             ats_keywords  seniority  salary range  difficulty    │
-  │  Computes:  match_score (0–100)  priority_score  skill_gaps      │
+  │  Extracts:  required_skills  preferred_skills  tech_stack       │
+  │             ats_keywords  seniority  salary range  difficulty   │
+  │  Computes:  match_score (0–100)  priority_score  skill_gaps     │
   │  → Persist JobAnalysis · status = ANALYZED                      │
   └──────────────────┬──────────────────────────────────────────────┘
                      │  match_score >= AUTO_APPLY_MATCH_THRESHOLD
@@ -158,7 +158,7 @@ The central automation cycle runs every 6 hours via `run_main_agent_cycle`. Each
   │  → Send Telegram notification (job · company · match score)      │
   │  → status = PENDING_APPROVAL                                     │
   │  → Wait for inline Approve / Skip response                       │
-  │  → On approve: status = QUEUED → Playwright bot runs            │
+  │  → On approve: status = QUEUED → Playwright bot runs             │
   └──────────────────────────────────────────────────────────────────┘
 
   Playwright ApplyBot — ATS detection from URL:
@@ -276,7 +276,7 @@ Every application passes through a well-defined finite state machine. Every tran
   │  posted_at        │                     │
   └────────┬──────────┘                     │
            │                                │
-           ├──1:1──►  job_analyses           │
+           ├──1:1──►  job_analyses          │
            │          match_score           │
            │          priority_score        │
            │          skill_gaps[]          │
