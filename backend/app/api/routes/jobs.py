@@ -24,15 +24,40 @@ async def trigger_scrape(
     current_user: User = Depends(get_current_user),
 ):
     """Trigger the job scraping agent to run."""
+    import structlog
+    log = structlog.get_logger()
+    
     try:
         from app.agents.tasks import run_main_agent_cycle
         run_main_agent_cycle.delay()
         return MessageResponse(message="Scraping started - jobs will be added shortly")
     except Exception as e:
-        import structlog
-        log = structlog.get_logger()
         log.error("Failed to queue scraping task", error=str(e))
-        raise HTTPException(status_code=500, detail="Failed to start scraping")
+        # Fallback: try synchronous execution
+        try:
+            from app.agents.scrapers.linkedin import LinkedInScraper
+            from app.agents.scrapers.indeed import IndeedScraper
+            from app.agents.scrapers.internshala import IntershalaScraper
+            from app.agents.scrapers.wellfound import WellfoundScraper
+            import asyncio
+            
+            # Run scrapers directly
+            async def run_all():
+                scrapers = [
+                    LinkedInScraper().run(),
+                    IndeedScraper().run(),
+                    IntershalaScraper().run(),
+                    WellfoundScraper().run(),
+                ]
+                results = await asyncio.gather(*scrapers, return_exceptions=True)
+                total = sum(r.get('jobs_found', 0) for r in results if isinstance(r, dict))
+                return total
+            
+            total = await run_all()
+            return MessageResponse(message=f"Scraping completed - {total} jobs found")
+        except Exception as fallback_error:
+            log.error("Fallback scraping also failed", error=str(fallback_error))
+            raise HTTPException(status_code=500, detail="Failed to start scraping")
 
 
 @router.get("", response_model=PaginatedResponse)

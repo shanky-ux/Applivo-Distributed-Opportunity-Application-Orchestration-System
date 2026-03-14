@@ -259,7 +259,7 @@ export const agentApi = {
   },
 
   runAgentCycle: async () => {
-    const response = await api.post<AgentLog>("/api/agent/run");
+    const response = await api.post<AgentLog>("/api/agent/run", { task_type: "scrape_jobs" });
     return response.data;
   },
 

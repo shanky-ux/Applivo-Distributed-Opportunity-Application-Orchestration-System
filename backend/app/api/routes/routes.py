@@ -520,16 +520,32 @@ async def trigger_agent_manually(
     current_user: User = Depends(get_current_user),
 ):
     """Manually trigger an agent task (e.g. run scraper now)."""
+    import structlog
+    log = structlog.get_logger()
+    
     try:
         from app.agents.tasks import TASK_REGISTRY
         task_fn = TASK_REGISTRY.get(payload.task_type)
         if not task_fn:
             raise HTTPException(status_code=400, detail=f"Unknown task type: {payload.task_type}")
-        task_fn.delay(**(payload.payload or {}))
+        
+        log.info("Triggering task", task_type=payload.task_type)
+        
+        # Try to queue the task
+        try:
+            task_fn.delay(**(payload.payload or {}))
+            log.info("Task queued successfully", task_type=payload.task_type)
+        except Exception as celery_error:
+            # If Celery fails, try running directly
+            log.warning("Celery failed, running synchronously", error=str(celery_error))
+            task_fn()
+            log.info("Task ran synchronously", task_type=payload.task_type)
+            
         return MessageResponse(message=f"Task '{payload.task_type}' triggered")
     except HTTPException:
         raise
     except Exception as e:
+        log.error("Failed to trigger agent task", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

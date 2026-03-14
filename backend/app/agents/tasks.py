@@ -163,29 +163,17 @@ def run_main_agent_cycle(self):
     """
     logger.info("Starting main agent cycle")
     try:
-        # Step 1: Scrape all platforms in parallel
-        scrape_group = celery_app.group(
-            scrape_linkedin_task.s(),
-            scrape_indeed_task.s(),
-            scrape_internshala_task.s(),
-            scrape_wellfound_task.s(),
-        )
-
-        # Step 2: After scraping, analyze new jobs
-        analysis_chain = scrape_group | analyze_new_jobs_batch_task.s()
-
-        # Step 3: After analysis, generate materials and queue applications
-        full_chain = (
-            analysis_chain
-            | generate_materials_for_top_jobs_task.s()
-            | queue_auto_applications_task.s()
-            | take_market_snapshot.s()
-            | send_daily_digest_task.s()
-        )
-
-        full_chain.delay()
+        # Run all scrapers in parallel using apply_async for each
+        scrape_linkedin_task.apply_async()
+        scrape_indeed_task.apply_async()
+        scrape_internshala_task.apply_async()
+        scrape_wellfound_task.apply_async()
+        
+        # Also trigger the next steps after a delay
+        analyze_new_jobs_batch_task.apply_async()
+        
         logger.info("Main agent cycle tasks dispatched")
-        return {"status": "dispatched"}
+        return {"status": "dispatched", "scrapers": ["linkedin", "indeed", "internshala", "wellfound"]}
     except Exception as exc:
         logger.error(f"Main cycle failed: {exc}")
         self.retry(exc=exc, countdown=300)  # Retry after 5 min

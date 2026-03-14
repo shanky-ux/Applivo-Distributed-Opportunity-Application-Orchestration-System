@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { useAgentStatus, useAgentLogs, useUpdateAgentStatus } from "@/hooks/useApi";
+import { useAgentStatus, useAgentLogs, useUpdateAgentStatus, useRunAgentCycle } from "@/hooks/useApi";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
 import type { AgentStatus } from "@/types";
 
@@ -27,6 +27,7 @@ export default function AgentPage() {
   const { data: status } = useAgentStatus();
   const { data: agentLogs = [] } = useAgentLogs(20);
   const updateStatusMutation = useUpdateAgentStatus();
+  const runAgentCycleMutation = useRunAgentCycle();
   const [agentStatus, setAgentStatus] = useState<AgentStatus>({
     isRunning: true,
     autoJobDiscovery: true,
@@ -167,9 +168,16 @@ export default function AgentPage() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4">
-                  <Button className="gap-2">
+                  <Button 
+                    className="gap-2"
+                    onClick={() => {
+                      console.log("Running agent cycle...");
+                      runAgentCycleMutation.mutate();
+                    }}
+                    disabled={runAgentCycleMutation.isPending}
+                  >
                     <Play className="h-4 w-4" />
-                    Run Agent Cycle
+                    {runAgentCycleMutation.isPending ? "Running..." : "Run Agent Cycle"}
                   </Button>
                   <Button variant="outline" className="gap-2">
                     <Pause className="h-4 w-4" />
