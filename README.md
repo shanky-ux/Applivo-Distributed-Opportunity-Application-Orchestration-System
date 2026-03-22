@@ -18,7 +18,7 @@ A personal, single-user AI career automation platform. Scrapes job boards, score
 
 ---
 
-## Overview
+## Overviews
 
 Applivo is built around three core principles:
 
